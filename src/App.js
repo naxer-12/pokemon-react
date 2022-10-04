@@ -1,14 +1,20 @@
-import logo from "./logo.svg";
-import PokemonRow from "./components/PokemonRow";
 import "./App.css";
 
 import { useEffect, useReducer, useState } from "react";
+import { createStore } from "redux";
+import { Provider, useSelector, useDispatch } from "react-redux";
 import PokemonInfo from "./components/PokemonInfo";
 import PokemonFilter from "./components/PokemonFilter";
 import PokemonTable from "./components/PokemonTable";
-import PokemonContext from "./PokemonContext";
 
-const pokemonReducer = (state, action) => {
+const pokemonReducer = (
+  state = {
+    filter: "",
+    pokemon: [],
+    selectedItem: null,
+  },
+  action
+) => {
   console.log(action.payload);
   switch (action.type) {
     case "SET_FILTER":
@@ -27,19 +33,14 @@ const pokemonReducer = (state, action) => {
         selectedItem: action.payload,
       };
     default:
-      throw new Error("Unknown action type " + action.type);
+      return state;
   }
 };
 
+const store = createStore(pokemonReducer);
 function App() {
-  const [filter, filterSet] = useState("");
-  const [pokemon, pokemonSet] = useState([]);
-  const [selectedItem, setSelectedItem] = useState("");
-  const [state, dispatch] = useReducer(pokemonReducer, {
-    filter: "",
-    pokemon: [],
-    setSelectedItem: null,
-  });
+  const dispatch = useDispatch();
+  const pokemon = useSelector((state) => state.pokemon);
   //FOR USE CONTEXT
   /*  useEffect(() => {
     fetch("http://localhost:3000/pokemon.json")
@@ -59,50 +60,41 @@ function App() {
       });
   }, []);
 
-  console.log(state.pokemon);
-  if (!state.pokemon) {
+  console.log(pokemon);
+  if (!pokemon) {
     return <div>LOADING DATA</div>;
   }
 
   return (
-    <PokemonContext.Provider
-      value={{
-        filter,
-        filterSet,
-        pokemon,
-        pokemonSet,
-        selectedItem,
-        setSelectedItem,
-        state,
-        dispatch,
+    <div
+      style={{
+        margin: "auto",
+        width: 800,
+        paddingTop: "1rem",
       }}
     >
+      <h1 className="title">Pokemon search</h1>
+
       <div
         style={{
-          margin: "auto",
-          width: 800,
-          paddingTop: "1rem",
+          display: "grid",
+          gridTemplateColumns: "70% 30%",
+          gridColumnGap: "1rem",
         }}
       >
-        <h1 className="title">Pokemon search</h1>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "70% 30%",
-            gridColumnGap: "1rem",
-          }}
-        >
-          <div>
-            <PokemonFilter />
-            <PokemonTable />
-          </div>
-          {console.log(selectedItem)}
-          <PokemonInfo {...selectedItem} />
+        <div>
+          <PokemonFilter />
+          <PokemonTable />
         </div>
+
+        <PokemonInfo />
       </div>
-    </PokemonContext.Provider>
+    </div>
   );
 }
 
-export default App;
+export default () => (
+  <Provider store={store}>
+    <App />
+  </Provider>
+);
